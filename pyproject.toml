@@ -8,6 +8,7 @@ dependencies = [
     "cairosvg>=2.9.0",
     "fastapi>=0.136.1",
     "fpdf2>=2.8.7",
+    "gunicorn>=25.3.0",
     "langchain>=1.2.15",
     "langchain-community>=0.4.1",
     "langchain-groq>=1.1.2",
