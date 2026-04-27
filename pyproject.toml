@@ -1,0 +1,19 @@
+[project]
+name = "blueprint-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "cairosvg>=2.9.0",
+    "fastapi>=0.136.1",
+    "fpdf2>=2.8.7",
+    "langchain>=1.2.15",
+    "langchain-community>=0.4.1",
+    "langchain-groq>=1.1.2",
+    "langchain-tavily>=0.2.18",
+    "langgraph>=1.1.9",
+    "python-dotenv>=1.2.2",
+    "tavily-python>=0.7.23",
+    "uvicorn[standard]>=0.46.0",
+]

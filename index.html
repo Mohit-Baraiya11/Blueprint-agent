@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blueprint Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08090d;
+    --surface: #0f1117;
+    --surface2: #151820;
+    --border: #1e2130;
+    --border2: #252a3a;
+    --accent: #c8f045;
+    --accent-dim: rgba(200,240,69,0.12);
+    --accent-glow: rgba(200,240,69,0.06);
+    --hitl: #f0a845;
+    --hitl-dim: rgba(240,168,69,0.12);
+    --text: #e8eaf0;
+    --text2: #9ea3b8;
+    --muted: #5a5f75;
+    --green: #45f0a8;
+    --red: #f04560;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(200,240,69,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,240,69,0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orb */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(200,240,69,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+
+  /* ── NAV ─────────────────────────────────────────── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 60px;
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: -0.03em;
+    color: var(--accent);
+  }
+
+  .nav-logo span { color: var(--text2); }
+
+  .nav-tag {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* ── HERO ────────────────────────────────────────── */
+  .hero {
+    margin-bottom: 56px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(200,240,69,0.2);
+    border-radius: 3px;
+    padding: 5px 12px;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .hero-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 7vw, 58px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 .accent { color: var(--accent); }
+  .hero h1 .dim { color: var(--muted); }
+
+  .hero p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.8;
+    max-width: 520px;
+  }
+
+  /* ── PIPELINE STEPS ──────────────────────────────── */
+  .steps {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.1s ease both;
+    opacity: 0;
+    animation-fill-mode: forwards;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--muted);
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+
+  .step.active {
+    color: var(--accent);
+    border-color: rgba(200,240,69,0.3);
+    background: var(--accent-dim);
+  }
+
+  .step.done {
+    color: var(--green);
+    border-color: rgba(69,240,168,0.2);
+  }
+
+  .step.hitl-step {
+    color: var(--hitl);
+    border-color: rgba(240,168,69,0.3);
+    background: var(--hitl-dim);
+  }
+
+  .step-num {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+  }
+
+  .step.done .step-num { background: rgba(69,240,168,0.2); }
+  .step.active .step-num { background: rgba(200,240,69,0.2); }
+
+  /* ── FORM CARD ───────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    animation: fadeUp 0.6s 0.2s ease both;
+    opacity: 0;
+    animation-fill-mode: forwards;
+  }
+
+  .card-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2);
+  }
+
+  .card-header-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .card-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .card-header span {
+    font-size: 10px;
+    color: var(--muted);
+    margin-left: auto;
+    letter-spacing: 0.1em;
+  }
+
+  .card-body { padding: 28px 24px; }
+
+  /* ── FORM ELEMENTS ───────────────────────────────── */
+  .field { margin-bottom: 20px; }
+
+  label {
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  textarea, select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 12px 16px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    resize: none;
+  }
+
+  textarea { min-height: 120px; line-height: 1.7; }
+
+  textarea:focus, select:focus {
+    border-color: rgba(200,240,69,0.4);
+    box-shadow: 0 0 0 3px rgba(200,240,69,0.06);
+  }
+
+  textarea::placeholder { color: var(--muted); }
+
+  select option { background: var(--surface); }
+
+  .skill-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .skill-btn {
+    padding: 10px 8px;
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    background: var(--bg);
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+
+  .skill-btn:hover {
+    border-color: var(--border2);
+    color: var(--text);
+  }
+
+  .skill-btn.selected {
+    background: var(--accent-dim);
+    border-color: rgba(200,240,69,0.4);
+    color: var(--accent);
+  }
+
+  /* ── SUBMIT BTN ──────────────────────────────────── */
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #08090d;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: all 0.15s;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-submit:active { transform: translateY(0); }
+  .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* ── LOADING ─────────────────────────────────────── */
+  #loading {
+    display: none;
+    padding: 32px 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .loading-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .pipeline-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .progress-node {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 11px;
+    color: var(--muted);
+    transition: all 0.3s;
+  }
+
+  .progress-node.running {
+    border-color: rgba(200,240,69,0.3);
+    background: var(--accent-glow);
+    color: var(--accent);
+  }
+
+  .progress-node.done-node {
+    border-color: rgba(69,240,168,0.15);
+    color: var(--green);
+  }
+
+  .progress-node.hitl-running {
+    border-color: rgba(240,168,69,0.3);
+    background: var(--hitl-dim);
+    color: var(--hitl);
+  }
+
+  .node-icon { font-size: 14px; }
+
+  .spinner {
+    width: 12px;
+    height: 12px;
+    border: 1.5px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-left: auto;
+    opacity: 0.6;
+  }
+
+  /* ── HITL SECTION ────────────────────────────────── */
+  #hitl-section {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .hitl-header {
+    padding: 16px 24px;
+    background: var(--hitl-dim);
+    border-bottom: 1px solid rgba(240,168,69,0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hitl-header h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--hitl);
+  }
+
+  .hitl-header p {
+    font-size: 10px;
+    color: var(--hitl);
+    opacity: 0.7;
+    margin-left: auto;
+    letter-spacing: 0.08em;
+  }
+
+  .hitl-body { padding: 24px; }
+
+  .question-block {
+    margin-bottom: 16px;
+  }
+
+  .question-label {
+    font-size: 11px;
+    color: var(--hitl);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .question-text {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 10px;
+    line-height: 1.6;
+    padding-left: 12px;
+    border-left: 2px solid rgba(240,168,69,0.3);
+  }
+
+  .answer-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid rgba(240,168,69,0.2);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .answer-input:focus {
+    border-color: rgba(240,168,69,0.5);
+    box-shadow: 0 0 0 3px rgba(240,168,69,0.06);
+  }
+
+  .btn-resume {
+    width: 100%;
+    padding: 13px;
+    background: var(--hitl);
+    color: #08090d;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-resume:hover { opacity: 0.9; }
+  .btn-resume:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── RESULT ──────────────────────────────────────── */
+  #result-section {
+    display: none;
+    margin-top: 24px;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid rgba(69,240,168,0.2);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .result-header {
+    padding: 16px 24px;
+    background: rgba(69,240,168,0.05);
+    border-bottom: 1px solid rgba(69,240,168,0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .result-header h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--green);
+  }
+
+  .result-body { padding: 24px; }
+
+  .result-body p {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--green);
+    color: #08090d;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+
+  .btn-download:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .btn-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: all 0.15s;
+  }
+
+  .btn-new:hover { color: var(--text); border-color: var(--border2); }
+
+  /* ── ERROR ───────────────────────────────────────── */
+  .error-msg {
+    display: none;
+    padding: 12px 16px;
+    background: rgba(240,69,96,0.08);
+    border: 1px solid rgba(240,69,96,0.2);
+    border-radius: 5px;
+    font-size: 11px;
+    color: var(--red);
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────── */
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+  }
+
+  footer p {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── ANIMATIONS ──────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────── */
+  @media (max-width: 480px) {
+    .skill-grid { grid-template-columns: repeat(3, 1fr); }
+    .steps { gap: 6px; }
+    .step { font-size: 9px; padding: 3px 8px; }
+    nav { margin-bottom: 40px; }
+    .hero { margin-bottom: 36px; }
+    .card-body { padding: 20px 16px; }
+    .hitl-body { padding: 16px; }
+    .result-body { padding: 16px; }
+    .btn-download, .btn-new { width: 100%; justify-content: center; margin-left: 0; margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">blueprint<span>.</span>agent</div>
+    <div class="nav-tag">// powered by LangGraph</div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">
+      <div class="hero-badge-dot"></div>
+      Multi-agent pipeline
+    </div>
+    <h1>Turn your idea<br>into a <span class="accent">blueprint</span><span class="dim">.</span></h1>
+    <p>Describe your project in plain English. Eight specialized AI agents will validate it, design the architecture, recommend a tech stack, and generate a complete build plan — as a downloadable PDF.</p>
+  </div>
+
+  <!-- PIPELINE STEPS -->
+  <div class="steps" id="pipeline-steps">
+    <div class="step" id="step-1"><div class="step-num">1</div>Orchestrator</div>
+    <div class="step" id="step-2"><div class="step-num">2</div>Clarification</div>
+    <div class="step" id="step-3"><div class="step-num">3</div>HITL</div>
+    <div class="step" id="step-4"><div class="step-num">4</div>Validation</div>
+    <div class="step" id="step-5"><div class="step-num">5</div>Architecture</div>
+    <div class="step" id="step-6"><div class="step-num">6</div>Stack</div>
+    <div class="step" id="step-7"><div class="step-num">7</div>Execution</div>
+    <div class="step" id="step-8"><div class="step-num">8</div>Blueprint</div>
+  </div>
+
+  <!-- MAIN CARD -->
+  <div class="card" id="main-card">
+    <div class="card-header">
+      <div class="card-header-dot" style="background:#c8f045"></div>
+      <h2>Describe Your Project</h2>
+      <span>step 01</span>
+    </div>
+    <div class="card-body">
+
+      <div class="field">
+        <label>Your Idea</label>
+        <textarea id="raw-idea" placeholder="I want to build an app where students can find study partners nearby based on their subject and college..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Your Skill Level</label>
+        <div class="skill-grid">
+          <button class="skill-btn selected" data-skill="beginner" onclick="selectSkill(this)">Beginner</button>
+          <button class="skill-btn" data-skill="intermediate" onclick="selectSkill(this)">Intermediate</button>
+          <button class="skill-btn" data-skill="advanced" onclick="selectSkill(this)">Advanced</button>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="submit-btn" onclick="generate()">
+        <span>Generate Blueprint</span>
+        <span>→</span>
+      </button>
+
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+
+    <!-- LOADING -->
+    <div id="loading">
+      <div class="loading-label">// pipeline running</div>
+      <div class="pipeline-progress">
+        <div class="progress-node" id="node-orchestrator">
+          <span class="node-icon">🧠</span> Orchestrator — initializing state
+        </div>
+        <div class="progress-node" id="node-clarification">
+          <span class="node-icon">💬</span> Clarification Agent — analyzing idea
+        </div>
+        <div class="progress-node" id="node-hitl">
+          <span class="node-icon">🙋</span> HITL — checking for gaps
+        </div>
+        <div class="progress-node" id="node-validation">
+          <span class="node-icon">🔍</span> Validation Agent — searching web
+        </div>
+        <div class="progress-node" id="node-architecture">
+          <span class="node-icon">🏗️</span> Architecture Agent — designing system
+        </div>
+        <div class="progress-node" id="node-stack">
+          <span class="node-icon">⚙️</span> Stack Agent — selecting tech stack
+        </div>
+        <div class="progress-node" id="node-execution">
+          <span class="node-icon">🗺️</span> Execution Agent — building roadmap
+        </div>
+        <div class="progress-node" id="node-blueprint">
+          <span class="node-icon">📄</span> Blueprint Generator — creating PDF
+        </div>
+      </div>
+    </div>
+
+    <!-- HITL SECTION -->
+    <div id="hitl-section">
+      <div class="hitl-header">
+        <span>🙋</span>
+        <h3>Clarification Needed</h3>
+        <p>// graph paused</p>
+      </div>
+      <div class="hitl-body">
+        <div id="questions-container"></div>
+        <button class="btn-resume" id="resume-btn" onclick="resume()">
+          <span>Submit Answers & Continue</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result-section">
+    <div class="result-card">
+      <div class="result-header">
+        <span>✅</span>
+        <h3>Blueprint Ready</h3>
+      </div>
+      <div class="result-body">
+        <p>Your project blueprint has been generated successfully. It includes problem validation, system architecture diagram, recommended tech stack, database schema, API routes, phase-wise build plan, and risk areas.</p>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <a id="download-btn" class="btn-download" href="#" download="blueprint.pdf">
+            ⬇ Download PDF
+          </a>
+          <button class="btn-new" onclick="resetForm()">
+            ↺ New Blueprint
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>// blueprint agent — LangGraph multi-agent system</p>
+    <a href="https://github.com/Mohit-Baraiya11" target="_blank">github.com/Mohit-Baraiya11</a>
+  </footer>
+
+</div>
+
+<script>
+  // ── STATE ───────────────────────────────────────────
+  let selectedSkill = 'beginner'
+  let currentThreadId = null
+  let currentQuestions = []
+
+  const API_BASE = 'http://localhost:8000'
+
+  // ── SKILL SELECT ────────────────────────────────────
+  function selectSkill(btn) {
+    document.querySelectorAll('.skill-btn').forEach(b => b.classList.remove('selected'))
+    btn.classList.add('selected')
+    selectedSkill = btn.dataset.skill
+  }
+
+  // ── STEP INDICATORS ─────────────────────────────────
+  function setStep(stepNum, status) {
+    const el = document.getElementById(`step-${stepNum}`)
+    if (!el) return
+    el.className = 'step'
+    if (status === 'active') el.classList.add('active')
+    if (status === 'done') el.classList.add('done')
+    if (status === 'hitl') el.classList.add('hitl-step')
+  }
+
+  function setNode(nodeId, status) {
+    const el = document.getElementById(`node-${nodeId}`)
+    if (!el) return
+    el.className = 'progress-node'
+    if (status === 'running') {
+      el.classList.add('running')
+      el.innerHTML = el.innerHTML.replace(/<div class="spinner"><\/div>/, '')
+      el.innerHTML += '<div class="spinner"></div>'
+    }
+    if (status === 'done') {
+      el.classList.add('done-node')
+      el.querySelectorAll('.spinner').forEach(s => s.remove())
+    }
+    if (status === 'hitl') {
+      el.classList.add('hitl-running')
+    }
+  }
+
+  // ── GENERATE ────────────────────────────────────────
+  async function generate() {
+    const idea = document.getElementById('raw-idea').value.trim()
+    if (!idea) {
+      showError('Please describe your project idea first.')
+      return
+    }
+
+    hideError()
+    document.getElementById('submit-btn').disabled = true
+    document.getElementById('loading').style.display = 'block'
+
+    // animate steps
+    animatePipeline()
+
+    try {
+      const res = await fetch(`${API_BASE}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ raw_idea: idea, skill_level: selectedSkill })
+      })
+
+      if (!res.ok) throw new Error(`Server error: ${res.status}`)
+
+      const contentType = res.headers.get('content-type')
+
+      if (contentType && contentType.includes('application/json')) {
+        // HITL triggered
+        const data = await res.json()
+        if (data.status === 'clarification_needed') {
+          currentThreadId = data.thread_id
+          currentQuestions = data.questions
+          showHITL(data.questions)
+        }
+      } else {
+        // PDF returned directly
+        const blob = await res.blob()
+        showResult(blob)
+      }
+
+    } catch (err) {
+      showError(`Error: ${err.message}. Make sure the server is running on ${API_BASE}`)
+      document.getElementById('submit-btn').disabled = false
+      document.getElementById('loading').style.display = 'none'
+    }
+  }
+
+  // ── RESUME ──────────────────────────────────────────
+  async function resume() {
+    const inputs = document.querySelectorAll('.answer-input')
+    const answers = Array.from(inputs).map(i => i.value.trim() || 'Not specified')
+
+    document.getElementById('resume-btn').disabled = true
+    document.getElementById('hitl-section').style.display = 'none'
+    document.getElementById('loading').style.display = 'block'
+
+    // continue animation from validation
+    setStep(3, 'done')
+    setTimeout(() => { setNode('hitl', 'done'); setNode('validation', 'running'); setStep(4, 'active') }, 200)
+    setTimeout(() => { setNode('validation', 'done'); setNode('architecture', 'running'); setStep(4, 'done'); setStep(5, 'active') }, 2000)
+    setTimeout(() => { setNode('architecture', 'done'); setNode('stack', 'running'); setStep(5, 'done'); setStep(6, 'active') }, 4000)
+    setTimeout(() => { setNode('stack', 'done'); setNode('execution', 'running'); setStep(6, 'done'); setStep(7, 'active') }, 6000)
+    setTimeout(() => { setNode('execution', 'done'); setNode('blueprint', 'running'); setStep(7, 'done'); setStep(8, 'active') }, 8000)
+
+    try {
+      const res = await fetch(`${API_BASE}/resume`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ thread_id: currentThreadId, answers })
+      })
+
+      if (!res.ok) throw new Error(`Server error: ${res.status}`)
+
+      const blob = await res.blob()
+      showResult(blob)
+
+    } catch (err) {
+      showError(`Error: ${err.message}`)
+      document.getElementById('resume-btn').disabled = false
+    }
+  }
+
+  // ── ANIMATION ────────────────────────────────────────
+  function animatePipeline() {
+    setNode('orchestrator', 'running'); setStep(1, 'active')
+    setTimeout(() => { setNode('orchestrator', 'done'); setNode('clarification', 'running'); setStep(1, 'done'); setStep(2, 'active') }, 800)
+    setTimeout(() => { setNode('clarification', 'done'); setNode('hitl', 'hitl'); setStep(2, 'done'); setStep(3, 'hitl') }, 2000)
+  }
+
+  // ── SHOW HITL ────────────────────────────────────────
+  function showHITL(questions) {
+    document.getElementById('loading').style.display = 'none'
+    document.getElementById('hitl-section').style.display = 'block'
+
+    const container = document.getElementById('questions-container')
+    container.innerHTML = ''
+
+    questions.forEach((q, i) => {
+      container.innerHTML += `
+        <div class="question-block">
+          <div class="question-label">// question ${i + 1}</div>
+          <div class="question-text">${q}</div>
+          <input class="answer-input" type="text" placeholder="Your answer..." />
+        </div>
+      `
+    })
+  }
+
+  // ── SHOW RESULT ──────────────────────────────────────
+  function showResult(blob) {
+    document.getElementById('loading').style.display = 'none'
+    document.getElementById('hitl-section').style.display = 'none'
+
+    setStep(8, 'done')
+    setNode('blueprint', 'done')
+
+    const url = URL.createObjectURL(blob)
+    document.getElementById('download-btn').href = url
+    document.getElementById('result-section').style.display = 'block'
+
+    document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' })
+  }
+
+  // ── ERROR ────────────────────────────────────────────
+  function showError(msg) {
+    const el = document.getElementById('error-msg')
+    el.textContent = msg
+    el.style.display = 'block'
+  }
+
+  function hideError() {
+    document.getElementById('error-msg').style.display = 'none'
+  }
+
+  // ── RESET ────────────────────────────────────────────
+  function resetForm() {
+    document.getElementById('raw-idea').value = ''
+    document.getElementById('submit-btn').disabled = false
+    document.getElementById('loading').style.display = 'none'
+    document.getElementById('hitl-section').style.display = 'none'
+    document.getElementById('result-section').style.display = 'none'
+    document.getElementById('questions-container').innerHTML = ''
+    document.getElementById('resume-btn').disabled = false
+    hideError()
+
+    // reset steps
+    for (let i = 1; i <= 8; i++) setStep(i, '')
+    ;['orchestrator','clarification','hitl','validation','architecture','stack','execution','blueprint']
+      .forEach(n => setNode(n, ''))
+
+    currentThreadId = null
+    currentQuestions = []
+  }
+</script>
+</body>
+</html>
