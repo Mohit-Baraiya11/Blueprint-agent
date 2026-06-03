@@ -1,10 +1,8 @@
 from state import ProjectBlueprintState
 import os
+from functools import lru_cache
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
 from pydantic import BaseModel, Field
-from langchain_core.output_parsers import PydanticOutputParser
-from langchain_core.messages import SystemMessage, HumanMessage
 from typing import Union
 
 load_dotenv()
@@ -15,10 +13,19 @@ class ArchitectureOutput(BaseModel):
     api_routes: list[str]
     svg_diagram: str
 
-parser = PydanticOutputParser(pydantic_object=ArchitectureOutput)
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
-chain = llm | parser
+@lru_cache(maxsize=1)
+def get_chain():
+    from langchain_groq import ChatGroq
+    from langchain_core.output_parsers import PydanticOutputParser
+
+    parser = PydanticOutputParser(pydantic_object=ArchitectureOutput)
+
+    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+    return llm | parser
+
 def architecture_node(state:ProjectBlueprintState)->dict:
+    from langchain_core.messages import HumanMessage, SystemMessage
+
     SYSTEM_PROMPT = """You are a software architect.
         Analyze the project idea and generate a complete system architecture.
 
@@ -39,7 +46,7 @@ def architecture_node(state:ProjectBlueprintState)->dict:
 
         Return ONLY JSON. No explanation.
         """
-    result = chain.invoke([
+    result = get_chain().invoke([
         SystemMessage(content=SYSTEM_PROMPT),
         HumanMessage(content=f"""
         Project Idea: {state['clarified_idea']}

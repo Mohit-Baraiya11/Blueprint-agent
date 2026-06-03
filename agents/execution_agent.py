@@ -1,10 +1,8 @@
 from state import ProjectBlueprintState
 import os
+from functools import lru_cache
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
 from pydantic import BaseModel, Field
-from langchain_core.output_parsers import PydanticOutputParser
-from langchain_core.messages import SystemMessage, HumanMessage
 
 load_dotenv()
 class ExecutionOutput(BaseModel):
@@ -13,10 +11,23 @@ class ExecutionOutput(BaseModel):
     timeline_weeks: int
     risks: list[str]
 
-parser = PydanticOutputParser(pydantic_object=ExecutionOutput)
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2)
-chain = llm | parser
+@lru_cache(maxsize=1)
+def get_parser():
+    from langchain_core.output_parsers import PydanticOutputParser
+
+    return PydanticOutputParser(pydantic_object=ExecutionOutput)
+
+@lru_cache(maxsize=1)
+def get_chain():
+    from langchain_groq import ChatGroq
+    parser = get_parser()
+
+    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2)
+    return llm | parser
+
 def execution_node(state: ProjectBlueprintState) -> dict:
+    from langchain_core.messages import HumanMessage, SystemMessage
+    parser = get_parser()
     SYSTEM_PROMPT = f"""
         You are a project manager and technical mentor.
         Analyze the project idea, architecture, stack, and user's skill level.
@@ -34,7 +45,7 @@ def execution_node(state: ProjectBlueprintState) -> dict:
     USER SKILL LEVEL: {state['skill_level']}
     """
 
-    response = chain.invoke([
+    response = get_chain().invoke([
         SystemMessage(content=SYSTEM_PROMPT),
         HumanMessage(content=project_summary)
     ])

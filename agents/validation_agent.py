@@ -1,10 +1,7 @@
 import os
+from functools import lru_cache
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
-from langchain_tavily import TavilySearch
 from pydantic import BaseModel, Field
-from langchain_core.output_parsers import PydanticOutputParser
-from langchain_core.messages import SystemMessage, HumanMessage
 from state import ProjectBlueprintState
 
 load_dotenv()
@@ -16,14 +13,26 @@ class ValidationOutput(BaseModel):
     competitors: list[str]
     unique_angle: str
 
-parser = PydanticOutputParser(pydantic_object=ValidationOutput)
+@lru_cache(maxsize=1)
+def get_tavily_tool():
+    from langchain_tavily import TavilySearch
 
-tavily_tool = TavilySearch(max_results=3)
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
-chain = llm | parser
+    return TavilySearch(max_results=3)
+
+@lru_cache(maxsize=1)
+def get_chain():
+    from langchain_groq import ChatGroq
+    from langchain_core.output_parsers import PydanticOutputParser
+
+    parser = PydanticOutputParser(pydantic_object=ValidationOutput)
+
+    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+    return llm | parser
 
 def validation_node(state:ProjectBlueprintState)->dict:
-    search_results = tavily_tool.invoke(
+    from langchain_core.messages import HumanMessage, SystemMessage
+
+    search_results = get_tavily_tool().invoke(
         f"existing apps similar to {state['clarified_idea']}"
     )
 
@@ -46,7 +55,7 @@ def validation_node(state:ProjectBlueprintState)->dict:
 
             Respond ONLY with the JSON, no markdown.
     """
-    result = chain.invoke([
+    result = get_chain().invoke([
         SystemMessage(content="You are a strict technical validator."),
         HumanMessage(content=prompt)
     ])

@@ -256,7 +256,7 @@
     margin-bottom: 8px;
   }
 
-  textarea, select {
+  textarea, select, .api-input {
     width: 100%;
     background: var(--bg);
     border: 1px solid var(--border2);
@@ -272,7 +272,7 @@
 
   textarea { min-height: 120px; line-height: 1.7; }
 
-  textarea:focus, select:focus {
+  textarea:focus, select:focus, .api-input:focus {
     border-color: rgba(200,240,69,0.4);
     box-shadow: 0 0 0 3px rgba(200,240,69,0.06);
   }
@@ -311,6 +311,42 @@
     border-color: rgba(200,240,69,0.4);
     color: var(--accent);
   }
+
+  .api-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .api-input {
+    flex: 1;
+  }
+
+  .api-btn {
+    padding: 0 14px;
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .api-btn:hover {
+    border-color: rgba(200,240,69,0.3);
+    color: var(--accent);
+  }
+
+  .api-meta {
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .api-meta.success { color: var(--green); }
+  .api-meta.error { color: var(--red); }
 
   /* ── SUBMIT BTN ──────────────────────────────────── */
   .btn-submit {
@@ -688,6 +724,15 @@
         </div>
       </div>
 
+      <div class="field">
+        <label>Backend API URL</label>
+        <div class="api-row">
+          <input id="api-base" class="api-input" type="url" placeholder="http://localhost:8000" />
+          <button type="button" class="api-btn" onclick="checkBackend()">Check</button>
+        </div>
+        <div class="api-meta" id="api-meta">GitHub Pages only hosts this UI. The FastAPI backend must be reachable at the URL above.</div>
+      </div>
+
       <button class="btn-submit" id="submit-btn" onclick="generate()">
         <span>Generate Blueprint</span>
         <span>→</span>
@@ -778,14 +823,107 @@
   let selectedSkill = 'beginner'
   let currentThreadId = null
   let currentQuestions = []
+<<<<<<< HEAD
 
   const API_BASE = 'https://blueprint-agent-3.onrender.com'
+=======
+  const API_STORAGE_KEY = 'blueprint_agent_api_base'
+  const DEFAULT_API_BASE = 'http://localhost:8000'
+>>>>>>> 23a1f60 (fix the backend buug)
 
   // ── SKILL SELECT ────────────────────────────────────
   function selectSkill(btn) {
     document.querySelectorAll('.skill-btn').forEach(b => b.classList.remove('selected'))
     btn.classList.add('selected')
     selectedSkill = btn.dataset.skill
+  }
+
+  function normalizeApiBase(value) {
+    return (value || '').trim().replace(/\/+$/, '')
+  }
+
+  function setApiMeta(message, tone = '') {
+    const el = document.getElementById('api-meta')
+    el.textContent = message
+    el.className = tone ? `api-meta ${tone}` : 'api-meta'
+  }
+
+  function getApiBase() {
+    const input = document.getElementById('api-base')
+    const fromInput = normalizeApiBase(input ? input.value : '')
+    const fromStorage = normalizeApiBase(localStorage.getItem(API_STORAGE_KEY) || '')
+    return fromInput || fromStorage || DEFAULT_API_BASE
+  }
+
+  function persistApiBase() {
+    const apiBase = getApiBase()
+    localStorage.setItem(API_STORAGE_KEY, apiBase)
+    const input = document.getElementById('api-base')
+    if (input) input.value = apiBase
+    setApiMeta(`Using backend: ${apiBase}`)
+    return apiBase
+  }
+
+  function formatAgentName(agent) {
+    if (!agent) return 'Backend'
+    return agent
+      .replace(/_node$/, '')
+      .replace(/_agent$/, ' agent')
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, char => char.toUpperCase())
+  }
+
+  async function postJson(path, payload) {
+    const apiBase = persistApiBase()
+    let res
+
+    try {
+      res = await fetch(`${apiBase}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+    } catch (err) {
+      const secureContextHint = window.location.protocol === 'https:'
+        ? ' If you are using GitHub Pages, the backend must be reachable from the browser and may need HTTPS.'
+        : ''
+      throw new Error(`Could not reach ${apiBase}.${secureContextHint}`)
+    }
+
+    const contentType = res.headers.get('content-type') || ''
+    if (!res.ok) {
+      let message = `Server error: ${res.status}`
+      let currentAgent = null
+
+      if (contentType.includes('application/json')) {
+        const data = await res.json()
+        message = data.message || message
+        currentAgent = data.current_agent
+      } else {
+        const text = await res.text()
+        if (text) message = text
+      }
+
+      const prefix = currentAgent ? `${formatAgentName(currentAgent)} failed` : 'Backend error'
+      throw new Error(`${prefix}: ${message}`)
+    }
+
+    setApiMeta(`Connected to backend: ${apiBase}`, 'success')
+    return { res, contentType }
+  }
+
+  async function checkBackend() {
+    hideError()
+    const apiBase = persistApiBase()
+
+    try {
+      const res = await fetch(`${apiBase}/health`)
+      if (!res.ok) throw new Error(`Server error: ${res.status}`)
+      setApiMeta(`Backend is reachable: ${apiBase}`, 'success')
+    } catch (err) {
+      setApiMeta(`Backend is not reachable: ${apiBase}`, 'error')
+      showError(`Could not connect to ${apiBase}. Start the FastAPI server there or enter your deployed backend URL.`)
+    }
   }
 
   // ── STEP INDICATORS ─────────────────────────────────
@@ -832,17 +970,12 @@
     animatePipeline()
 
     try {
-      const res = await fetch(`${API_BASE}/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ raw_idea: idea, skill_level: selectedSkill })
+      const { res, contentType } = await postJson('/generate', {
+        raw_idea: idea,
+        skill_level: selectedSkill
       })
 
-      if (!res.ok) throw new Error(`Server error: ${res.status}`)
-
-      const contentType = res.headers.get('content-type')
-
-      if (contentType && contentType.includes('application/json')) {
+      if (contentType.includes('application/json')) {
         // HITL triggered
         const data = await res.json()
         if (data.status === 'clarification_needed') {
@@ -857,7 +990,7 @@
       }
 
     } catch (err) {
-      showError(`Error: ${err.message}. Make sure the server is running on ${API_BASE}`)
+      showError(`Error: ${err.message}`)
       document.getElementById('submit-btn').disabled = false
       document.getElementById('loading').style.display = 'none'
     }
@@ -881,13 +1014,10 @@
     setTimeout(() => { setNode('execution', 'done'); setNode('blueprint', 'running'); setStep(7, 'done'); setStep(8, 'active') }, 8000)
 
     try {
-      const res = await fetch(`${API_BASE}/resume`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ thread_id: currentThreadId, answers })
+      const { res } = await postJson('/resume', {
+        thread_id: currentThreadId,
+        answers
       })
-
-      if (!res.ok) throw new Error(`Server error: ${res.status}`)
 
       const blob = await res.blob()
       showResult(blob)
@@ -895,6 +1025,8 @@
     } catch (err) {
       showError(`Error: ${err.message}`)
       document.getElementById('resume-btn').disabled = false
+      document.getElementById('loading').style.display = 'none'
+      document.getElementById('hitl-section').style.display = 'block'
     }
   }
 
@@ -969,6 +1101,9 @@
     currentThreadId = null
     currentQuestions = []
   }
+
+  document.getElementById('api-base').value = localStorage.getItem(API_STORAGE_KEY) || DEFAULT_API_BASE
+  persistApiBase()
 </script>
 </body>
 </html>

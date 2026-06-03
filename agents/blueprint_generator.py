@@ -1,7 +1,6 @@
 import os
 import tempfile
 from fpdf import FPDF
-import cairosvg
 from state import ProjectBlueprintState
 
 
@@ -88,6 +87,8 @@ def generate_pdf(state: ProjectBlueprintState) -> bytes:
     if svg_str:
         pdf.section_title("Architecture Diagram")
         try:
+            import cairosvg
+
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
                 cairosvg.svg2png(bytestring=svg_str.encode(), write_to=tmp.name)
                 tmp_path = tmp.name

@@ -1,10 +1,8 @@
 import os
-from langchain_groq import ChatGroq
+from functools import lru_cache
 from dotenv import load_dotenv
-from langchain_core.messages import SystemMessage, HumanMessage
 from state import ProjectBlueprintState
 from pydantic import BaseModel
-from langchain_core.output_parsers import PydanticOutputParser
 
 
 load_dotenv()
@@ -15,15 +13,21 @@ class ClarificationOutput(BaseModel):
     clarified_idea: str
     questions: list[str]
 
-parser = PydanticOutputParser(
-    pydantic_object=ClarificationOutput
-)
+@lru_cache(maxsize=1)
+def get_chain():
+    from langchain_groq import ChatGroq
+    from langchain_core.output_parsers import PydanticOutputParser
 
-llm = ChatGroq(
-    model="llama-3.1-8b-instant",
-    temperature=0.3,
-    api_key=os.getenv("GROQ_API_KEY")
-)
+    parser = PydanticOutputParser(
+        pydantic_object=ClarificationOutput
+    )
+
+    llm = ChatGroq(
+        model="llama-3.1-8b-instant",
+        temperature=0.3,
+        api_key=os.getenv("GROQ_API_KEY")
+    )
+    return llm | parser
 
 SYSTEM_PROMPT = """
 You are a product analyst. Analyze the project idea and find gaps.
@@ -38,8 +42,10 @@ Return ONLY JSON. No explanation.
 """
 
 def clarification_node(state: ProjectBlueprintState) -> dict:
+    from langchain_core.messages import HumanMessage, SystemMessage
+
     print(f"{state['current_agent']} is running....")
-    chain = llm | parser
+    chain = get_chain()
 
     response = chain.invoke([
         SystemMessage(content=SYSTEM_PROMPT),
