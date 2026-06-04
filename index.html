@@ -37,7 +37,6 @@
     overflow-x: hidden;
   }
 
-  /* Grid background */
   body::before {
     content: '';
     position: fixed;
@@ -50,7 +49,6 @@
     z-index: 0;
   }
 
-  /* Glow orb */
   body::after {
     content: '';
     position: fixed;
@@ -72,7 +70,6 @@
     padding: 0 20px 80px;
   }
 
-  /* ── NAV ─────────────────────────────────────────── */
   nav {
     display: flex;
     align-items: center;
@@ -99,7 +96,6 @@
     text-transform: uppercase;
   }
 
-  /* ── HERO ────────────────────────────────────────── */
   .hero {
     margin-bottom: 56px;
     animation: fadeUp 0.6s ease both;
@@ -147,7 +143,6 @@
     max-width: 520px;
   }
 
-  /* ── PIPELINE STEPS ──────────────────────────────── */
   .steps {
     display: flex;
     gap: 8px;
@@ -202,7 +197,6 @@
   .step.done .step-num { background: rgba(69,240,168,0.2); }
   .step.active .step-num { background: rgba(200,240,69,0.2); }
 
-  /* ── FORM CARD ───────────────────────────────────── */
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -244,7 +238,6 @@
 
   .card-body { padding: 28px 24px; }
 
-  /* ── FORM ELEMENTS ───────────────────────────────── */
   .field { margin-bottom: 20px; }
 
   label {
@@ -256,7 +249,7 @@
     margin-bottom: 8px;
   }
 
-  textarea, select, .api-input {
+  textarea {
     width: 100%;
     background: var(--bg);
     border: 1px solid var(--border2);
@@ -268,18 +261,16 @@
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
     resize: none;
+    min-height: 120px;
+    line-height: 1.7;
   }
 
-  textarea { min-height: 120px; line-height: 1.7; }
-
-  textarea:focus, select:focus, .api-input:focus {
+  textarea:focus {
     border-color: rgba(200,240,69,0.4);
     box-shadow: 0 0 0 3px rgba(200,240,69,0.06);
   }
 
   textarea::placeholder { color: var(--muted); }
-
-  select option { background: var(--surface); }
 
   .skill-grid {
     display: grid;
@@ -301,10 +292,7 @@
     letter-spacing: 0.05em;
   }
 
-  .skill-btn:hover {
-    border-color: var(--border2);
-    color: var(--text);
-  }
+  .skill-btn:hover { color: var(--text); }
 
   .skill-btn.selected {
     background: var(--accent-dim);
@@ -312,43 +300,6 @@
     color: var(--accent);
   }
 
-  .api-row {
-    display: flex;
-    gap: 8px;
-  }
-
-  .api-input {
-    flex: 1;
-  }
-
-  .api-btn {
-    padding: 0 14px;
-    border: 1px solid var(--border2);
-    border-radius: 5px;
-    background: var(--surface2);
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .api-btn:hover {
-    border-color: rgba(200,240,69,0.3);
-    color: var(--accent);
-  }
-
-  .api-meta {
-    margin-top: 8px;
-    font-size: 10px;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-
-  .api-meta.success { color: var(--green); }
-  .api-meta.error { color: var(--red); }
-
-  /* ── SUBMIT BTN ──────────────────────────────────── */
   .btn-submit {
     width: 100%;
     padding: 14px;
@@ -373,7 +324,6 @@
   .btn-submit:active { transform: translateY(0); }
   .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-  /* ── LOADING ─────────────────────────────────────── */
   #loading {
     display: none;
     padding: 32px 24px;
@@ -436,7 +386,6 @@
     opacity: 0.6;
   }
 
-  /* ── HITL SECTION ────────────────────────────────── */
   #hitl-section {
     display: none;
     border-top: 1px solid var(--border);
@@ -468,9 +417,7 @@
 
   .hitl-body { padding: 24px; }
 
-  .question-block {
-    margin-bottom: 16px;
-  }
+  .question-block { margin-bottom: 16px; }
 
   .question-label {
     font-size: 11px;
@@ -528,7 +475,6 @@
   .btn-resume:hover { opacity: 0.9; }
   .btn-resume:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  /* ── RESULT ──────────────────────────────────────── */
   #result-section {
     display: none;
     margin-top: 24px;
@@ -602,9 +548,8 @@
     transition: all 0.15s;
   }
 
-  .btn-new:hover { color: var(--text); border-color: var(--border2); }
+  .btn-new:hover { color: var(--text); }
 
-  /* ── ERROR ───────────────────────────────────────── */
   .error-msg {
     display: none;
     padding: 12px 16px;
@@ -617,7 +562,6 @@
     line-height: 1.6;
   }
 
-  /* ── FOOTER ──────────────────────────────────────── */
   footer {
     margin-top: 80px;
     padding-top: 24px;
@@ -625,7 +569,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: gap;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   footer p {
@@ -641,7 +586,6 @@
     letter-spacing: 0.08em;
   }
 
-  /* ── ANIMATIONS ──────────────────────────────────── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
@@ -656,7 +600,6 @@
     50% { opacity: 0.4; }
   }
 
-  /* ── RESPONSIVE ──────────────────────────────────── */
   @media (max-width: 480px) {
     .skill-grid { grid-template-columns: repeat(3, 1fr); }
     .steps { gap: 6px; }
@@ -673,13 +616,11 @@
 <body>
 <div class="wrapper">
 
-  <!-- NAV -->
   <nav>
     <div class="nav-logo">blueprint<span>.</span>agent</div>
     <div class="nav-tag">// powered by LangGraph</div>
   </nav>
 
-  <!-- HERO -->
   <div class="hero">
     <div class="hero-badge">
       <div class="hero-badge-dot"></div>
@@ -689,7 +630,6 @@
     <p>Describe your project in plain English. Eight specialized AI agents will validate it, design the architecture, recommend a tech stack, and generate a complete build plan — as a downloadable PDF.</p>
   </div>
 
-  <!-- PIPELINE STEPS -->
   <div class="steps" id="pipeline-steps">
     <div class="step" id="step-1"><div class="step-num">1</div>Orchestrator</div>
     <div class="step" id="step-2"><div class="step-num">2</div>Clarification</div>
@@ -701,7 +641,6 @@
     <div class="step" id="step-8"><div class="step-num">8</div>Blueprint</div>
   </div>
 
-  <!-- MAIN CARD -->
   <div class="card" id="main-card">
     <div class="card-header">
       <div class="card-header-dot" style="background:#c8f045"></div>
@@ -724,15 +663,6 @@
         </div>
       </div>
 
-      <div class="field">
-        <label>Backend API URL</label>
-        <div class="api-row">
-          <input id="api-base" class="api-input" type="url" placeholder="http://localhost:8000" />
-          <button type="button" class="api-btn" onclick="checkBackend()">Check</button>
-        </div>
-        <div class="api-meta" id="api-meta">GitHub Pages only hosts this UI. The FastAPI backend must be reachable at the URL above.</div>
-      </div>
-
       <button class="btn-submit" id="submit-btn" onclick="generate()">
         <span>Generate Blueprint</span>
         <span>→</span>
@@ -741,7 +671,6 @@
       <div class="error-msg" id="error-msg"></div>
     </div>
 
-    <!-- LOADING -->
     <div id="loading">
       <div class="loading-label">// pipeline running</div>
       <div class="pipeline-progress">
@@ -772,7 +701,6 @@
       </div>
     </div>
 
-    <!-- HITL SECTION -->
     <div id="hitl-section">
       <div class="hitl-header">
         <span>🙋</span>
@@ -789,7 +717,6 @@
     </div>
   </div>
 
-  <!-- RESULT -->
   <div id="result-section">
     <div class="result-card">
       <div class="result-header">
@@ -810,7 +737,6 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
   <footer>
     <p>// blueprint agent — LangGraph multi-agent system</p>
     <a href="https://github.com/Mohit-Baraiya11" target="_blank">github.com/Mohit-Baraiya11</a>
@@ -823,45 +749,14 @@
   let selectedSkill = 'beginner'
   let currentThreadId = null
   let currentQuestions = []
-<<<<<<< HEAD
 
   const API_BASE = 'https://blueprint-agent-3.onrender.com'
-=======
-  const API_STORAGE_KEY = 'blueprint_agent_api_base'
-  const DEFAULT_API_BASE = 'https://blueprint-agent-3.onrender.com'
->>>>>>> 23a1f60 (fix the backend buug)
 
   // ── SKILL SELECT ────────────────────────────────────
   function selectSkill(btn) {
     document.querySelectorAll('.skill-btn').forEach(b => b.classList.remove('selected'))
     btn.classList.add('selected')
     selectedSkill = btn.dataset.skill
-  }
-
-  function normalizeApiBase(value) {
-    return (value || '').trim().replace(/\/+$/, '')
-  }
-
-  function setApiMeta(message, tone = '') {
-    const el = document.getElementById('api-meta')
-    el.textContent = message
-    el.className = tone ? `api-meta ${tone}` : 'api-meta'
-  }
-
-  function getApiBase() {
-    const input = document.getElementById('api-base')
-    const fromInput = normalizeApiBase(input ? input.value : '')
-    const fromStorage = normalizeApiBase(localStorage.getItem(API_STORAGE_KEY) || '')
-    return fromInput || fromStorage || DEFAULT_API_BASE
-  }
-
-  function persistApiBase() {
-    const apiBase = getApiBase()
-    localStorage.setItem(API_STORAGE_KEY, apiBase)
-    const input = document.getElementById('api-base')
-    if (input) input.value = apiBase
-    setApiMeta(`Using backend: ${apiBase}`)
-    return apiBase
   }
 
   function formatAgentName(agent) {
@@ -874,20 +769,16 @@
   }
 
   async function postJson(path, payload) {
-    const apiBase = persistApiBase()
     let res
 
     try {
-      res = await fetch(`${apiBase}${path}`, {
+      res = await fetch(`${API_BASE}${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
     } catch (err) {
-      const secureContextHint = window.location.protocol === 'https:'
-        ? ' If you are using GitHub Pages, the backend must be reachable from the browser and may need HTTPS.'
-        : ''
-      throw new Error(`Could not reach ${apiBase}.${secureContextHint}`)
+      throw new Error(`Could not reach backend at ${API_BASE}. Make sure it is running and CORS is configured.`)
     }
 
     const contentType = res.headers.get('content-type') || ''
@@ -908,22 +799,7 @@
       throw new Error(`${prefix}: ${message}`)
     }
 
-    setApiMeta(`Connected to backend: ${apiBase}`, 'success')
     return { res, contentType }
-  }
-
-  async function checkBackend() {
-    hideError()
-    const apiBase = persistApiBase()
-
-    try {
-      const res = await fetch(`${apiBase}/health`)
-      if (!res.ok) throw new Error(`Server error: ${res.status}`)
-      setApiMeta(`Backend is reachable: ${apiBase}`, 'success')
-    } catch (err) {
-      setApiMeta(`Backend is not reachable: ${apiBase}`, 'error')
-      showError(`Could not connect to ${apiBase}. Start the FastAPI server there or enter your deployed backend URL.`)
-    }
   }
 
   // ── STEP INDICATORS ─────────────────────────────────
@@ -966,7 +842,6 @@
     document.getElementById('submit-btn').disabled = true
     document.getElementById('loading').style.display = 'block'
 
-    // animate steps
     animatePipeline()
 
     try {
@@ -976,7 +851,6 @@
       })
 
       if (contentType.includes('application/json')) {
-        // HITL triggered
         const data = await res.json()
         if (data.status === 'clarification_needed') {
           currentThreadId = data.thread_id
@@ -984,7 +858,6 @@
           showHITL(data.questions)
         }
       } else {
-        // PDF returned directly
         const blob = await res.blob()
         showResult(blob)
       }
@@ -1005,7 +878,6 @@
     document.getElementById('hitl-section').style.display = 'none'
     document.getElementById('loading').style.display = 'block'
 
-    // continue animation from validation
     setStep(3, 'done')
     setTimeout(() => { setNode('hitl', 'done'); setNode('validation', 'running'); setStep(4, 'active') }, 200)
     setTimeout(() => { setNode('validation', 'done'); setNode('architecture', 'running'); setStep(4, 'done'); setStep(5, 'active') }, 2000)
@@ -1093,7 +965,6 @@
     document.getElementById('resume-btn').disabled = false
     hideError()
 
-    // reset steps
     for (let i = 1; i <= 8; i++) setStep(i, '')
     ;['orchestrator','clarification','hitl','validation','architecture','stack','execution','blueprint']
       .forEach(n => setNode(n, ''))
@@ -1101,9 +972,6 @@
     currentThreadId = null
     currentQuestions = []
   }
-
-  document.getElementById('api-base').value = localStorage.getItem(API_STORAGE_KEY) || DEFAULT_API_BASE
-  persistApiBase()
 </script>
 </body>
 </html>
